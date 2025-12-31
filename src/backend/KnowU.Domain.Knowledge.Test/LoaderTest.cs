@@ -18,9 +18,9 @@ public class LoaderTest
     {
         // Arrange
         var ontology = _sut.Load();
-        
+
         // Act
-        
+
         // Assert
         Assert.That(ontology, Is.Not.Null);
         Assert.That(ontology.Classes, Is.Not.Empty);
