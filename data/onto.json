@@ -1,0 +1,166 @@
+{
+  "@context": {
+    "id": "@id",
+    "type": "@type",
+    "rdfs": "http://www.w3.org/2000/01/rdf-schema#",
+    "owl": "http://www.w3.org/2002/07/owl#",
+    "Class": "owl:Class",
+    "ObjectProperty": "owl:ObjectProperty",
+    "classes": {"@container": "@list"},
+    "properties": {"@container": "@list"},
+    "SoftwareModule": "http://example.org/ontology/SoftwareModule",
+    "Artifact": "http://example.org/ontology/Artifact",
+    "Document": "http://example.org/ontology/Document",
+    "Person": "http://example.org/ontology/Person",
+    "Requirement": "http://example.org/ontology/Requirement",
+    "Decision": "http://example.org/ontology/Decision",
+    "label": "http://www.w3.org/2000/01/rdf-schema#label",
+    "description": "http://www.w3.org/2000/01/rdf-schema#comment",
+    "domain": "http://www.w3.org/2000/01/rdf-schema#domain",
+    "range": "http://www.w3.org/2000/01/rdf-schema#range",
+    "allowedModality": "http://example.org/ontology/allowedModality",
+    "subClassOf": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+  },
+  "classes": [
+    {
+      "id": "http://example.org/class/Entity",
+      "type": "Class",
+      "label": "Entity",
+      "description": "Generic superclass for all entities in the knowledge graph"
+    },
+    {
+      "id": "http://example.org/class/SoftwareModule",
+      "type": "Class",
+      "label": "Software Module",
+      "description": "A software module or component",
+      "subClassOf": "http://example.org/class/Entity"
+    },
+    {
+      "id": "http://example.org/class/Artifact",
+      "type": "Class",
+      "label": "Artifact",
+      "description": "Any artifact produced or used by the organization",
+      "subClassOf": "http://example.org/class/Entity"
+    },
+    {
+      "id": "http://example.org/class/Document",
+      "type": "Class",
+      "label": "Document",
+      "description": "A textual or digital document",
+      "subClassOf": "http://example.org/class/Artifact"
+    },
+    {
+      "id": "http://example.org/class/Person",
+      "type": "Class",
+      "label": "Person",
+      "description": "A human actor",
+      "subClassOf": "http://example.org/class/Entity"
+    },
+    {
+      "id": "http://example.org/class/Requirement",
+      "type": "Class",
+      "label": "Requirement",
+      "description": "A functional or non-functional requirement",
+      "subClassOf": "http://example.org/class/Entity"
+    },
+    {
+      "id": "http://example.org/class/Decision",
+      "type": "Class",
+      "label": "Decision",
+      "description": "A recorded decision within the organization",
+      "subClassOf": "http://example.org/class/Entity"
+    }
+  ],
+  "properties": [
+    {
+      "id": "http://example.org/predicate/dependsOn",
+      "type": "ObjectProperty",
+      "label": "dependsOn",
+      "description": "Module A requires Module B to function",
+      "domain": "http://example.org/class/SoftwareModule",
+      "range": "http://example.org/class/SoftwareModule",
+      "allowedModality": ["asserted", "suspected"]
+    },
+    {
+      "id": "http://example.org/predicate/implements",
+      "type": "ObjectProperty",
+      "label": "implements",
+      "description": "Module fulfills a requirement",
+      "domain": "http://example.org/class/SoftwareModule",
+      "range": "http://example.org/class/Requirement",
+      "allowedModality": ["asserted"]
+    },
+    {
+      "id": "http://example.org/predicate/affects",
+      "type": "ObjectProperty",
+      "label": "affects",
+      "description": "Changes in subject affect the object",
+      "domain": "http://example.org/class/Artifact",
+      "range": "http://example.org/class/Artifact",
+      "allowedModality": ["asserted", "suspected"]
+    },
+    {
+      "id": "http://example.org/predicate/ownedBy",
+      "type": "ObjectProperty",
+      "label": "ownedBy",
+      "description": "Ownership of an artifact",
+      "domain": "http://example.org/class/Artifact",
+      "range": "http://example.org/class/Person",
+      "allowedModality": ["asserted"]
+    },
+    {
+      "id": "http://example.org/predicate/decidedBy",
+      "type": "ObjectProperty",
+      "label": "decidedBy",
+      "description": "Who made the decision",
+      "domain": "http://example.org/class/Decision",
+      "range": "http://example.org/class/Person",
+      "allowedModality": ["asserted"]
+    },
+    {
+      "id": "http://example.org/predicate/documents",
+      "type": "ObjectProperty",
+      "label": "documents",
+      "description": "Artifact is documented in",
+      "domain": "http://example.org/class/Artifact",
+      "range": "http://example.org/class/Document",
+      "allowedModality": ["asserted"]
+    },
+    {
+      "id": "http://example.org/predicate/relatedTo",
+      "type": "ObjectProperty",
+      "label": "relatedTo",
+      "description": "Generic fallback relation",
+      "domain": "http://example.org/class/Entity",
+      "range": "http://example.org/class/Entity",
+      "allowedModality": ["asserted", "suspected"]
+    },
+    {
+      "id": "http://example.org/predicate/mentions",
+      "type": "ObjectProperty",
+      "label": "mentions",
+      "description": "Document mentions an entity",
+      "domain": "http://example.org/class/Document",
+      "range": "http://example.org/class/Entity",
+      "allowedModality": ["asserted", "suspected"]
+    },
+    {
+      "id": "http://example.org/predicate/partOf",
+      "type": "ObjectProperty",
+      "label": "partOf",
+      "description": "Artifact is part of another artifact",
+      "domain": "http://example.org/class/Artifact",
+      "range": "http://example.org/class/Artifact",
+      "allowedModality": ["asserted"]
+    },
+    {
+      "id": "http://example.org/predicate/uses",
+      "type": "ObjectProperty",
+      "label": "uses",
+      "description": "Module A uses functionality of Module B",
+      "domain": "http://example.org/class/SoftwareModule",
+      "range": "http://example.org/class/SoftwareModule",
+      "allowedModality": ["asserted", "suspected"]
+    }
+  ]
+}
