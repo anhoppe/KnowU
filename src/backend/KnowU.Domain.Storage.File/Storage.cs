@@ -21,7 +21,7 @@ public class Storage : IStorage
 
     public void StoreNote(string note)
     {
-        var noteToSerialize = new NoteMeta()
+        var noteToSerialize = new Document()
         {
             Content = note,
             CreatedAt = DateTime.UtcNow,
