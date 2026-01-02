@@ -10,8 +10,13 @@ namespace KnowU.Domain.Storage.Contract;
 public interface IStorage
 {
     /// <summary>
-    /// Stores a note in the storage
+    /// Access to all documents that are available
     /// </summary>
-    /// <param name="note">Note to be stored</param>
-    void StoreNote(string note);
+    IList<IDocument> Documents { get; }
+    
+    /// <summary>
+    /// Stores a document in the storage
+    /// </summary>
+    /// <param name="content">Content of the document to be stored</param>
+    void StoreDocument(string content);
 }

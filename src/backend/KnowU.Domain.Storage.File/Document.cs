@@ -1,9 +1,9 @@
-﻿namespace KnowU.Domain.Storage.Contract;
+﻿using KnowU.Domain.Storage.Contract;
 
-/// <summary>
-///     Represents a single document (note) that is submitted to the storage
-/// </summary>
-public class Document
+namespace KnowU.Domain.Storage.File;
+
+
+internal class Document : IDocument
 {
     /// <summary>
     ///     The note added by the user
