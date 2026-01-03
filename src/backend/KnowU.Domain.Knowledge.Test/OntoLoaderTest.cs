@@ -3,14 +3,14 @@
 namespace KnowU.Domain.Knowledge.Test;
 
 [TestFixture]
-public class LoaderTest
+public class OntoLoaderTest
 {
-    private Loader _sut = null!;
+    private OntoLoader _sut = null!;
 
     [SetUp]
     public void SetUp()
     {
-        _sut = new Loader();
+        _sut = new OntoLoader();
     }
 
     [Test]

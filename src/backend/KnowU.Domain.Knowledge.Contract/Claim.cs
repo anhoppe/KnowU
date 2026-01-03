@@ -1,11 +1,11 @@
 ﻿using KnowU.Domain.Storage.Contract;
 
-namespace KnowU.Domain.Knowledge;
+namespace KnowU.Domain.Knowledge.Contract;
 
 /// <summary>
 /// A claim is directly derived from text corpus
 /// </summary>
-internal class Claim
+public class Claim
 {
     public Entity Object { get; init; } = new();
 

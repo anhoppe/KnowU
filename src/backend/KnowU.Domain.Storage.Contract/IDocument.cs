@@ -5,5 +5,8 @@
 /// </summary>
 public interface IDocument
 {
-    
+    /// <summary>
+    /// Content of the document
+    /// </summary>
+    string Content { get; }
 }

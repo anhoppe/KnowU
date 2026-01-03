@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using KnowU.Domain.Knowledge.Contract;
 
 namespace KnowU.Domain.Knowledge;
 

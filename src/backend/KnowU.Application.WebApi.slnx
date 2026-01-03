@@ -1,5 +1,6 @@
 <Solution>
   <Project Path="KnowU.Application.WebApi/KnowU.Application.WebApi.csproj" />
+  <Project Path="KnowU.Domain.Knowledge.Contract/KnowU.Domain.Knowledge.Contract.csproj" />
   <Project Path="KnowU.Domain.Knowledge.Test/KnowU.Domain.Knowledge.Test.csproj" Id="8969a348-bcf7-49d5-a6b2-376022d0b437" />
   <Project Path="KnowU.Domain.Knowledge/KnowU.Domain.Knowledge.csproj" Id="9cfb0976-a6fd-40f7-a9d1-3dc6eedc5986" />
   <Project Path="KnowU.Domain.Storage.Contract/KnowU.Domain.Storage.Contract.csproj" />

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace KnowU.Domain.Knowledge;
+namespace KnowU.Domain.Knowledge.Contract;
 
 public class PredicateProperty
 {

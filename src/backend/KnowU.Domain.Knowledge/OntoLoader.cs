@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace KnowU.Domain.Knowledge;
 
-internal class Loader
+internal class OntoLoader
 {
     public Ontology Load()
     {
