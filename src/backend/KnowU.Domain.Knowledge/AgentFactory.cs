@@ -2,11 +2,11 @@ using KnowU.Domain.Knowledge.Contract;
 
 namespace KnowU.Domain.Knowledge;
 
-public class AgentFactory : IAgentFactory
+internal class AgentFactory : IAgentFactory
 {
-    public IAgent CreateAgent(string systemPrompt, string id, string name)
+    public IAgent CreateAgent(string systemPrompt, string id, string name, IOntologyProvider ontologyProvider)
     {
-        return new Agent(systemPrompt)
+        return new Agent(systemPrompt, ontologyProvider)
         {
             Id = id,
             Name = name

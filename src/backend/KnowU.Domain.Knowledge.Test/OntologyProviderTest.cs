@@ -3,21 +3,21 @@
 namespace KnowU.Domain.Knowledge.Test;
 
 [TestFixture]
-public class OntoLoaderTest
+public class OntologyProviderTest
 {
-    private OntoLoader _sut = null!;
+    private OntologyProvider _sut = null!;
 
     [SetUp]
     public void SetUp()
     {
-        _sut = new OntoLoader();
+        _sut = new OntologyProvider(@"c:\repo\KnowU\data\onto.json");
     }
 
     [Test]
     public void LoadOnto_WhenLoaded_EntitiesAccessible()
     {
         // Arrange
-        var ontology = _sut.Load();
+        var ontology = _sut.GetOntology();
 
         // Act
 

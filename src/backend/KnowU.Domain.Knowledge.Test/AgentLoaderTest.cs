@@ -13,8 +13,8 @@ public class AgentLoaderTest
     public void SetUp()
     {
         var mockFactory = new Mock<IAgentFactory>();
-        mockFactory.Setup(f => f.CreateAgent(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Returns((string systemPrompt, string id, string name) => 
+        mockFactory.Setup(f => f.CreateAgent(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IOntologyProvider>()))
+            .Returns((string systemPrompt, string id, string name, IOntologyProvider ontologyProvider) => 
             {
                 var mockAgent = new Mock<IAgent>();
                 mockAgent.SetupGet(a => a.Id).Returns(id);
@@ -22,7 +22,9 @@ public class AgentLoaderTest
                 return mockAgent.Object;
             });
         
-        _sut = new AgentLoader("Assets/personas.yaml", mockFactory.Object);
+        var mockOntology = new Mock<IOntologyProvider>();
+        
+        _sut = new AgentLoader("Assets/personas.yaml", mockFactory.Object, mockOntology.Object);
     }
 
     [Test]

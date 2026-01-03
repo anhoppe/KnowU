@@ -4,14 +4,16 @@ using YamlDotNet.Serialization.NamingConventions;
 
 namespace KnowU.Domain.Knowledge;
 
-public class AgentLoader
+internal class AgentLoader
 {
     private readonly IAgentFactory _agentFactory;
+    private readonly IOntologyProvider _ontologyProvider;
 
-    public AgentLoader(string yamlFilePath, IAgentFactory agentFactory)
+    public AgentLoader(string yamlFilePath, IAgentFactory agentFactory, IOntologyProvider ontologyProvider)
     {
         _agentFactory = agentFactory;
-        
+        _ontologyProvider = ontologyProvider;
+
         var deserializer = new DeserializerBuilder()
             .WithNamingConvention(UnderscoredNamingConvention.Instance)
             .IgnoreUnmatchedProperties()
@@ -22,7 +24,7 @@ public class AgentLoader
 
         foreach (var persona in wrapper.Roles)
         {
-            Agents.Add(_agentFactory.CreateAgent(persona.SystemPrompt, persona.Id, persona.Name));
+            Agents.Add(_agentFactory.CreateAgent(persona.SystemPrompt, persona.Id, persona.Name, _ontologyProvider));
         }
     }
 
@@ -30,6 +32,6 @@ public class AgentLoader
 
     private class PersonasWrapper
     {
-        public List<Persona> Roles { get; set; } = new();
+        public List<Persona> Roles { get; } = new();
     }
 }

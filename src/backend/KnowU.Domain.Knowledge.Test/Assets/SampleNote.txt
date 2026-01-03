@@ -1,0 +1,129 @@
+﻿Marvin, JP 
+
+ 
+
+Install Docker-Desktop https://docs.docker.com/desktop/setup/install/windows-install/ 
+
+Disable line end conversion 
+
+git config --global core.autocrlf false 
+
+Clone repo bOne-integration-dts in WSL 
+
+Gen SSH key with ssh-keygen -t rsa -b 4096 -C "your_email@example.com" 
+
+Cat public key, copy entire key including ssh and the email 
+
+In Azure add SSH key, paste public key 
+
+Clone the repo using SSH 
+
+ 
+
+In a shell, navigate into bOne-integration-dts 
+
+Fetch the submodule with 
+
+git submodule init 
+
+git submodule update 
+
+Create Token for Docker Container Registry in Azure bOneAzureContainerRegistry 
+
+In Azure search for bOneAzureContainerRegistry 
+
+Add a token. Typical pattern for naming token: <YourInitials>-Pull 
+
+Create password1 
+
+Save password1 and the Docker login command for later usage 
+
+Navigate to bOne-integration-dts\platform\bOne\release 
+
+Copy config_default.sh to config.sh 
+
+Open config.sh 
+
+Apply Token name to ACR_TOKEN_ID 
+
+Apply password1 to ACR_IMAGE_TOKEN 
+
+Navigate to bOne-integration-dts\dts\release 
+
+Copy config_default.sh to config.sh 
+
+Open config.sh 
+
+Apply Token name to ACR_TOKEN_ID 
+
+Apply password1 to ACR_IMAGE_TOKEN 
+
+Deploy-and-start-all.sh 
+
+Execute script in bOne-integration-dts/dts/release 
+
+Include deployment of line simulator: deploy-and-start-all.sh -s 
+
+Install WSL Ubuntu 
+
+wsl --install -d Ubuntu-24.04 
+
+In docker.desktop>resources Enable Ubuntu-24.04 
+
+Apply and restart 
+
+ wsl --set-default Ubuntu-24.04 
+
+In bOne-integration-dts\platform\bOne\release execute 'bash deploy-and-start-all.sh' 
+
+export LOCAL_PLATFORM_DEPLOYMENT_PATH="../../platform/bOne/release/bOne/"  
+
+/bOne-integration-dts/platform/bOne/release/bOne execute ./down.sh -p to wipe to data in the containers 
+
+./up.sh fires-up all containers that were deployed by the deploy-and-start.sh in dts/release 
+
+In docker-stack/dts-data-service/docker-compose.dts-data-service.yml it is possible to set image to DTS build 
+
+Use frontend with locally running DTS: 
+
+Configure port to 80 in \\wsl.localhost\Ubuntu-24.04\home\ahoppe\repo\bOne-integration-dts\platform\bOne\release\bOne\dts-flock-manager-config\frontend\config\app-config.json 
+
+  "url": "http://<origin>:80" 
+
+\\wsl.localhost\Ubuntu-24.04\home\ahoppe\repo\bOne-integration-dts\docker-stack\dts-flock-manager-frontend\dts-flock-manager-config\frontend\config\app-config.json 
+
+For line simulator, copy configuration from 
+
+From: "C:\repo\bOne-integration-dts\configurations\TwoAreasExtraShort\DTS\configuration.json" 
+
+To: "C:\repo\dts-data-service\dts-data-service\res\configuration.json" 
+
+ 
+
+ 
+
+Line Simulator 
+
+bOne-integration-dts\line_simulation\copy_to_bone_release_folder.sh 
+
+bOne-integration-dts\configurations\TwoAreasExtraShort\override_config_in_bOne_release.sh 
+
+Start additional container yaml 
+
+ 
+
+Delete consul, is consul already deleted? Needs to be done manually 
+
+ 
+
+ 
+
+ 
+
+Questions: 
+
+How to set log level for dts 
+
+How to increase log file size 
+
+How to run DTS locally so that the web site interacts with DTS 

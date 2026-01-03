@@ -8,10 +8,10 @@ namespace KnowU.Domain.Knowledge.Contract;
 public interface IAgent
 {
     /// <summary>
-    /// Id of the persona (short version of the name w/o space)
+    ///     ID of the persona (short version of the name w/o space)
     /// </summary>
     string Id { get; }
-    
+
     /// <summary>
     ///     Name of the persona the agent represents
     ///     The persona is the name of the role in the loaded configuration
