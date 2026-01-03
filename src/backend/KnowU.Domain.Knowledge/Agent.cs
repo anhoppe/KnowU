@@ -52,11 +52,16 @@ internal class Agent : IAgent
 
     public async Task<IList<Claim>> ProcessAsync(IDocument document)
     {
+        var responseBuilder = new System.Text.StringBuilder();
+        
         await foreach (var text in _chatSession.ChatAsync(new ChatHistory.Message(AuthorRole.User, document.Content), _interferenceParams))
         {
-            Console.Write(text);
+            responseBuilder.Append(text);
         }
         
+        var fullResponse = responseBuilder.ToString();
+        
+        // TODO: Parse fullResponse into Claims
         return new List<Claim>();
     }
 }
