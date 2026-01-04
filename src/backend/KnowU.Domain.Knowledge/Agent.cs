@@ -60,32 +60,14 @@ internal class Agent : IAgent, IDisposable
 
     public async Task<IList<Claim>> ProcessAsync(IDocument document)
     {
-        var responseBuilder = new System.Text.StringBuilder();
+        var respondJson = new AgentRespondJson();
         
         await foreach (var text in _chatSession.ChatAsync(new ChatHistory.Message(AuthorRole.User, document.Content), _interferenceParams))
         {
-            responseBuilder.Append(text);
+            respondJson.AppendText(text);
         }
         
-        var fullResponse = responseBuilder.ToString();
-        
-        // Strip markdown code fences if present (LLMs sometimes add them despite instructions)
-        var jsonContent = fullResponse.Trim();
-        if (jsonContent.StartsWith("```json"))
-        {
-            jsonContent = jsonContent.Substring(7); // Remove ```json
-        }
-        else if (jsonContent.StartsWith("```"))
-        {
-            jsonContent = jsonContent.Substring(3); // Remove ```
-        }
-        
-        if (jsonContent.EndsWith("```"))
-        {
-            jsonContent = jsonContent.Substring(0, jsonContent.Length - 3); // Remove trailing ```
-        }
-        
-        jsonContent = jsonContent.Trim();
+        var jsonContent = respondJson.ExtractJson();
         
         // Parse JSON response into Claims
         try
@@ -124,6 +106,8 @@ internal class Agent : IAgent, IDisposable
                     {
                         Id = claim.Subject.Id,
                         Name = claim.Subject.Name,
+                        Description = claim.Subject.Description,
+                        Properties = claim.Subject.Properties,
                         Type = subjectType
                     },
                     Predicate = predicate,
@@ -131,6 +115,8 @@ internal class Agent : IAgent, IDisposable
                     {
                         Id = claim.Object.Id,
                         Name = claim.Object.Name,
+                        Description = claim.Object.Description,
+                        Properties = claim.Object.Properties,
                         Type = objectType
                     },
                     ReferenceDocument = document
@@ -144,7 +130,7 @@ internal class Agent : IAgent, IDisposable
         catch (System.Text.Json.JsonException ex)
         {
             Console.WriteLine($"Error parsing LLM response as JSON: {ex.Message}");
-            Console.WriteLine($"Response was: {fullResponse}");
+            Console.WriteLine($"Response was: {jsonContent}");
             return new List<Claim>();
         }
     }

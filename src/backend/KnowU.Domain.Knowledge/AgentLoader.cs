@@ -32,6 +32,6 @@ internal class AgentLoader
 
     private class PersonasWrapper
     {
-        public List<Persona> Roles { get; } = new();
+        public List<Persona> Roles { get; set; } = new();
     }
 }

@@ -13,6 +13,14 @@ public class Entity
     [JsonPropertyName("name")]
     public string Name { get; set; } = string.Empty;
     
+    [JsonPropertyName("description")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Description { get; set; }
+    
+    [JsonPropertyName("properties")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Dictionary<string, string>? Properties { get; set; }
+    
     [JsonPropertyName("typeId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? TypeId { get; set; }
