@@ -7,12 +7,19 @@ namespace KnowU.Domain.Knowledge;
 public class OntologyProvider : IOntologyProvider
 {
     private readonly Ontology _ontology;
+    private readonly string _jsonSchemaPrompt;
 
     public OntologyProvider(string ontologyJsonPath)
     {
         var jsonContent = File.ReadAllText(ontologyJsonPath);
         _ontology = JsonSerializer.Deserialize<Ontology>(jsonContent) 
             ?? throw new InvalidOperationException($"Could not load ontology from {ontologyJsonPath}");
+        
+        // Load JSON schema prompt from data directory
+        var dataDirectory = Path.GetDirectoryName(ontologyJsonPath) 
+            ?? throw new InvalidOperationException("Could not determine data directory");
+        var jsonSchemaPath = Path.Combine(dataDirectory, "jsonSchema.txt");
+        _jsonSchemaPrompt = File.ReadAllText(jsonSchemaPath);
     }
 
     public Ontology GetOntology() => _ontology;
@@ -38,51 +45,7 @@ public class OntologyProvider : IOntologyProvider
 
     public string GetJsonSchemaExample()
     {
-        return @"
-## Output Format:
-You MUST respond with ONLY valid JSON. No markdown code blocks, no explanations, no additional text.
-
-Example structure:
-{
-  ""claims"": [
-    {
-      ""subject"": {
-        ""id"": ""entity_identifier"",
-        ""name"": ""Entity Display Name"",
-        ""description"": ""Brief description to distinguish this entity"",
-        ""properties"": {
-          ""version"": ""1.0"",
-          ""url"": ""https://example.com"",
-          ""path"": ""/some/path""
-        },
-        ""typeId"": ""http://example.org/class/ClassName""
-      },
-      ""predicate"": {
-        ""id"": ""http://example.org/predicate/predicateName""
-      },
-      ""object"": {
-        ""id"": ""another_entity_id"",
-        ""name"": ""Another Entity Name"",
-        ""description"": ""Brief description"",
-        ""properties"": {
-          ""key"": ""value""
-        },
-        ""typeId"": ""http://example.org/class/ClassName""
-      }
-    }
-  ]
-}
-
-CRITICAL RULES:
-1. Use ONLY predicate IDs from the Available Predicates list above
-2. Use ONLY class IDs from the Available Entity Classes list above
-3. Entity IDs should be unique identifiers (e.g., slugified names)
-4. Entity names should be human-readable labels extracted from the text
-5. Add a description field to provide context that distinguishes this entity from others
-6. Include properties object with identifying attributes like: version, url, path, email, location, etc.
-7. Properties are optional but highly valuable - include any available identifying information
-8. Output valid JSON only - no code fences, no extra text
-";
+        return _jsonSchemaPrompt;
     }
 
     public EntityClass? FindClass(string classId)
