@@ -9,35 +9,36 @@ internal class Storage(IJsonSerializer _jsonSerializer) : IStorage
     // Map to track which document each claim belongs to
     private readonly Dictionary<Claim, string> _claimDocuments = new();
     
-    public IList<IDocument> Documents { get; } = new List<IDocument>();
+    public IList<Document> Documents { get; } = new List<Document>();
 
     public IList<Claim> Claims { get; } = new List<Claim>();
 
-    public string StoreDocument(string content)
+    public string StoreDocument(Document document)
     {
-        if (string.IsNullOrEmpty(content))
+        if (document == null)
         {
-            throw new ArgumentException("Content is empty");
+            throw new ArgumentNullException(nameof(document));
         }
 
-        // Generate ID first
-        var guid = Guid.NewGuid();
-        
-        // Create document with the ID
-        var document = new Document
+        if (string.IsNullOrEmpty(document.Content))
         {
-            Id = guid.ToString("N"),
-            Content = content,
-            CreatedAt = DateTime.UtcNow,
-            Version = 1
-        };
+            throw new ArgumentException("Document content is empty");
+        }
 
-        // Serialize with the specified ID
-        _jsonSerializer.Serialize(document, guid);
+        // Generate ID if not provided
+        var guid = string.IsNullOrEmpty(document.Id) ? Guid.NewGuid() : Guid.Parse(document.Id);
         
-        Documents.Add(document);
+        // Update document with generated ID if needed
+        var documentToStore = string.IsNullOrEmpty(document.Id) 
+            ? new Document { Id = guid.ToString("N"), Content = document.Content, Tags = document.Tags }
+            : document;
+
+        // Serialize the document with the specified ID
+        _jsonSerializer.Serialize(documentToStore, guid);
         
-        return document.Id;
+        Documents.Add(documentToStore);
+        
+        return documentToStore.Id;
     }
 
     public void StoreClaim(Claim claim)

@@ -13,7 +13,7 @@ public interface IStorage
     /// <summary>
     /// Access to all documents that are available
     /// </summary>
-    IList<IDocument> Documents { get; }
+    IList<Document> Documents { get; }
     
     /// <summary>
     /// Access to all claims that are stored
@@ -23,9 +23,9 @@ public interface IStorage
     /// <summary>
     /// Stores a document in the storage
     /// </summary>
-    /// <param name="content">Content of the document to be stored</param>
+    /// <param name="document">The document to be stored</param>
     /// <returns>The ID of the stored document</returns>
-    string StoreDocument(string content);
+    string StoreDocument(Document document);
     
     /// <summary>
     /// Stores a claim in the storage

@@ -23,49 +23,113 @@ public class StorageTest
     public void StoreDocument_WhenContentIsEmpty_ThenExceptionIsThrown()
     {
         // Arrange
-        var content = string.Empty;
+        var document = new Document
+        {
+            Content = string.Empty,
+            Tags = new List<string>()
+        };
 
         // Act / Assert
-        Assert.Throws<ArgumentException>(() => _sut.StoreDocument(content));
+        Assert.Throws<ArgumentException>(() => _sut.StoreDocument(document));
     }
 
     [Test]
-    public void StoreDocument_WhenContentIsPassed_ThenDocumentIsSerialized()
+    public void StoreDocument_WhenDocumentIsPassed_ThenDocumentIsSerialized()
     {
         // Arrange
-        var content = "foobar";
+        var document = new Document
+        {
+            Id = string.Empty,
+            Content = "foobar",
+            Tags = new List<string>()
+        };
 
         // Act
-        _sut.StoreDocument(content);
+        _sut.StoreDocument(document);
 
         // Assert
-        _serializerMock.Verify(m => m.Serialize(It.Is<Document>(p => p.Content == content), It.IsAny<Guid>()), Times.Once);
+        _serializerMock.Verify(m => m.Serialize(It.Is<Document>(p => p.Content == "foobar"), It.IsAny<Guid>()), Times.Once);
     }
 
     [Test]
-    public void StoreDocument_WhenContentIsPassed_ThenDocumentIsAdded()
+    public void StoreDocument_WhenDocumentIsPassed_ThenDocumentIsAdded()
     {
         // Arrange
-        var content = "foobar";
+        var document = new Document
+        {
+            Id = string.Empty,
+            Content = "foobar",
+            Tags = new List<string>()
+        };
         
         // Act
-        _sut.StoreDocument(content);
+        _sut.StoreDocument(document);
         
         // Assert
         Assert.That(_sut.Documents.Count, Is.EqualTo(1));
     }
     
     [Test]
-    public void StoreDocument_WhenContentIsPassed_ThenDocumentIdIsReturned()
+    public void StoreDocument_WhenDocumentIsPassed_ThenDocumentIdIsReturned()
     {
         // Arrange
-        var content = "foobar";
+        var document = new Document
+        {
+            Id = string.Empty,
+            Content = "foobar",
+            Tags = new List<string>()
+        };
         
         // Act
-        var documentId = _sut.StoreDocument(content);
+        var documentId = _sut.StoreDocument(document);
         
         // Assert
         Assert.That(documentId, Is.Not.Empty);
+    }
+
+    [Test]
+    public void StoreDocument_WhenDocumentWithTagsIsPassed_ThenDocumentWithTagsIsSerialized()
+    {
+        // Arrange
+        var tags = new List<string> { "authentication", "security", "OAuth" };
+        var document = new Document
+        {
+            Id = string.Empty,
+            Content = "Test document content",
+            Tags = tags
+        };
+
+        // Act
+        _sut.StoreDocument(document);
+
+        // Assert
+        _serializerMock.Verify(m => m.Serialize(
+            It.Is<Document>(doc => 
+                doc.Content == "Test document content" &&
+                doc.Tags.SequenceEqual(tags)
+            ), 
+            It.IsAny<Guid>()), 
+            Times.Once);
+    }
+
+    [Test]
+    public void StoreDocument_WhenDocumentWithTagsIsPassed_ThenDocumentContainsTags()
+    {
+        // Arrange
+        var tags = new List<string> { "authentication", "security" };
+        var document = new Document
+        {
+            Id = string.Empty,
+            Content = "Test document content",
+            Tags = tags
+        };
+
+        // Act
+        _sut.StoreDocument(document);
+
+        // Assert
+        var storedDocument = _sut.Documents.First();
+        Assert.That(storedDocument.Tags, Is.EquivalentTo(tags));
     }
     
     [Test]

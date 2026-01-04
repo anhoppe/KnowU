@@ -14,4 +14,9 @@ public interface IDocument
     /// Content of the document
     /// </summary>
     string Content { get; }
+    
+    /// <summary>
+    /// Tags for categorizing and discovering the document
+    /// </summary>
+    IReadOnlyList<string> Tags { get; }
 }

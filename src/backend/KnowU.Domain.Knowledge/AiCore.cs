@@ -46,7 +46,7 @@ internal class AiCore : IAiCore, IDisposable
         _chatSession = new ChatSession(executor, history);
     }
 
-    public async Task<AgentRespondJson> ProcessAsync(IDocument document)
+    public async Task<AgentRespondJson> ProcessAsync(Document document)
     {
         var respondJson = new AgentRespondJson();
 

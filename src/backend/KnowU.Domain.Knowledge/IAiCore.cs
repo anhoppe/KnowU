@@ -18,5 +18,5 @@ internal interface IAiCore
     /// </summary>
     /// <param name="document">The document to process</param>
     /// <returns>The AI response containing extracted JSON data</returns>
-    Task<AgentRespondJson> ProcessAsync(IDocument document);
+    Task<AgentRespondJson> ProcessAsync(Document document);
 }

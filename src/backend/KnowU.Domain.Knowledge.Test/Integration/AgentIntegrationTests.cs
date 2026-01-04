@@ -50,10 +50,11 @@ Extraction_Rules:
     {
         // Arrange
         var noteContent = File.ReadAllText("Assets/SampleNote.txt");
-        var document = new TestDocument
+        var document = new Document
         {
             Content = noteContent,
-            Id = "sample_note_1"
+            Id = "sample_note_1",
+            Tags = new List<string>()
         };
 
         // Act
@@ -80,11 +81,5 @@ Extraction_Rules:
         {
             Console.WriteLine($"  {claim.Subject.Id} --[{claim.Predicate.Label}]--> {claim.Object.Id}");
         }
-    }
-
-    private class TestDocument : IDocument
-    {
-        public string Id { get; init; } = string.Empty;
-        public string Content { get; init; } = string.Empty;
     }
 }

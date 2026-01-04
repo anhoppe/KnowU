@@ -30,7 +30,7 @@ internal class Agent : IAgent, IDisposable
 
     public string Name { get; init; } = string.Empty;
 
-    public async Task<IList<Claim>> ProcessAsync(IDocument document)
+    public async Task<IList<Claim>> ProcessAsync(Document document)
     {
         var respondJson = await _aiCore.ProcessAsync(document);
         var jsonContent = respondJson.ExtractJson();
@@ -66,7 +66,7 @@ internal class Agent : IAgent, IDisposable
         }
     }
 
-    private List<Claim> GenerateClaims(IDocument document, ClaimsWrapper wrapper)
+    private List<Claim> GenerateClaims(Document document, ClaimsWrapper wrapper)
     {
         var claims = new List<Claim>();
 

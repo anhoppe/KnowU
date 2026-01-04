@@ -20,5 +20,5 @@ public interface IAgent
     ///     Processes a single document and extracts claims
     /// </summary>
     /// <param name="document"></param>
-    Task<IList<Claim>> ProcessAsync(IDocument document);
+    Task<IList<Claim>> ProcessAsync(Document document);
 }

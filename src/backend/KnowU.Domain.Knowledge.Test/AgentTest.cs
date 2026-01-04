@@ -55,10 +55,12 @@ public class AgentTest
     public async Task ProcessAsync_WhenAiCoreFindsClaims_ThenClaimObjectsCorrectlyGenerated()
     {
         // Arrange
-        var mockDocument = new Mock<IDocument>();
-        mockDocument.Setup(d => d.Id).Returns("test-doc-123");
-        mockDocument.Setup(d => d.Content).Returns("Test content");
-        var testDocument = mockDocument.Object;
+        var testDocument = new Document
+        {
+            Id = "test-doc-123",
+            Content = "Test content",
+            Tags = new List<string>()
+        };
 
         // Create a valid JSON response with correct ontology IDs
         var respondJson = new AgentRespondJson();
@@ -84,7 +86,7 @@ public class AgentTest
             ]
         }");
 
-        _mockAiCore.Setup(a => a.ProcessAsync(It.IsAny<IDocument>()))
+        _mockAiCore.Setup(a => a.ProcessAsync(It.IsAny<Document>()))
             .ReturnsAsync(respondJson);
 
         var systemPrompt = "Extract claims from documents";
@@ -108,10 +110,12 @@ public class AgentTest
     public async Task ProcessAsync_WhenClaimsAreGenerated_ThenClaimsAreStored()
     {
         // Arrange
-        var mockDocument = new Mock<IDocument>();
-        mockDocument.Setup(d => d.Id).Returns("test-doc-123");
-        mockDocument.Setup(d => d.Content).Returns("Test content");
-        var testDocument = mockDocument.Object;
+        var testDocument = new Document
+        {
+            Id = "test-doc-123",
+            Content = "Test content",
+            Tags = new List<string>()
+        };
 
         var respondJson = new AgentRespondJson();
         respondJson.AppendText(@"{
@@ -134,7 +138,7 @@ public class AgentTest
             ]
         }");
 
-        _mockAiCore.Setup(a => a.ProcessAsync(It.IsAny<IDocument>()))
+        _mockAiCore.Setup(a => a.ProcessAsync(It.IsAny<Document>()))
             .ReturnsAsync(respondJson);
 
         var systemPrompt = "Extract claims from documents";
