@@ -1,4 +1,5 @@
 ﻿using KnowU.Domain.Knowledge.Contract;
+using KnowU.Domain.Storage.Contract;
 using Moq;
 using NUnit.Framework;
 
@@ -15,8 +16,8 @@ public class AgentLoaderTest
         var mockFactory = new Mock<IAgentFactory>();
         mockFactory.Setup(f =>
                 f.CreateAgent(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                    It.IsAny<IOntologyProvider>()))
-            .Returns((string systemPrompt, string id, string name, IOntologyProvider ontologyProvider) =>
+                    It.IsAny<IOntologyProvider>(), It.IsAny<IStorage>()))
+            .Returns((string systemPrompt, string id, string name, IOntologyProvider ontologyProvider, IStorage storage) =>
             {
                 var mockAgent = new Mock<IAgent>();
                 mockAgent.SetupGet(a => a.Id).Returns(id);
@@ -25,8 +26,9 @@ public class AgentLoaderTest
             });
 
         var mockOntology = new Mock<IOntologyProvider>();
+        var mockStorage = new Mock<IStorage>();
 
-        _sut = new AgentLoader("Assets/personas.yaml", mockFactory.Object, mockOntology.Object);
+        _sut = new AgentLoader("Assets/personas.yaml", mockFactory.Object, mockOntology.Object, mockStorage.Object);
     }
 
     [Test]

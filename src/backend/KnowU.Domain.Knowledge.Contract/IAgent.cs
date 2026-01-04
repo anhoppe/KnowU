@@ -1,6 +1,4 @@
-﻿using KnowU.Domain.Storage.Contract;
-
-namespace KnowU.Domain.Knowledge.Contract;
+﻿namespace KnowU.Domain.Knowledge.Contract;
 
 /// <summary>
 ///     Represents an agent that extracts data from the document layer

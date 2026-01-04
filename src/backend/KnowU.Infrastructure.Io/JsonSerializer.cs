@@ -19,8 +19,14 @@ internal class JsonSerializer : IJsonSerializer
 
     public void Serialize<T>(T obj)
     {
-        // Generate a unique filename using timestamp and GUID
-        var fileName = $"{Guid.NewGuid():N}.json";
+        // Generate a unique GUID for the filename
+        var guid = Guid.NewGuid();
+        Serialize(obj, guid);
+    }
+    
+    public void Serialize<T>(T obj, Guid id)
+    {
+        var fileName = $"{id.ToString("N")}.json";
         var filePath = Path.Combine(_storageDirectory, fileName);
 
         // Serialize to JSON and write to file

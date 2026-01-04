@@ -1,10 +1,16 @@
-﻿using KnowU.Domain.Storage.Contract;
+﻿using KnowU.Domain.Knowledge.Contract;
+using KnowU.Domain.Storage.Contract;
 
 namespace KnowU.Domain.Storage.File;
 
 
 internal class Document : IDocument
 {
+    /// <summary>
+    ///     Unique identifier for the document
+    /// </summary>
+    public string Id { get; init; } = string.Empty;
+    
     /// <summary>
     ///     The note added by the user
     /// </summary>

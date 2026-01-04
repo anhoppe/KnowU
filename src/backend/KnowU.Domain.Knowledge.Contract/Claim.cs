@@ -1,5 +1,4 @@
 ﻿using System.Text.Json.Serialization;
-using KnowU.Domain.Storage.Contract;
 
 namespace KnowU.Domain.Knowledge.Contract;
 
@@ -13,9 +12,6 @@ public class Claim
 
     [JsonPropertyName("predicate")]
     public PredicateProperty Predicate { get; init; } = new();
-
-    [JsonIgnore]
-    public IDocument ReferenceDocument { get; init; } = null!;
 
     [JsonPropertyName("subject")]
     public Entity Subject { get; init; } = new();

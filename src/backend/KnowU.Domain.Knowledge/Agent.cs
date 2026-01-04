@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using KnowU.Domain.Knowledge.Contract;
 using KnowU.Domain.Storage.Contract;
 using LLama;
@@ -9,44 +11,45 @@ namespace KnowU.Domain.Knowledge;
 
 internal class Agent : IAgent, IDisposable
 {
-    const string ModelPath = @"c:\models\google_gemma-3-4b-it-Q6_K.gguf";
+    private const string ModelPath = @"c:\models\google_gemma-3-4b-it-Q6_K.gguf";
 
     private readonly ChatSession _chatSession;
-    private readonly IOntologyProvider _ontologyProvider;
-    private readonly LLamaWeights _model;
     private readonly LLamaContext _context;
-    
+
     private readonly InferenceParams _interferenceParams = new()
     {
         AntiPrompts = ["<end_of_turn>"]
     };
+
+    private readonly LLamaWeights _model;
+    private readonly IOntologyProvider _ontologyProvider;
     
-    public Agent(string systemPrompt, IOntologyProvider ontologyProvider)
+    private readonly IStorage _storage;
+
+    public Agent(string systemPrompt, IOntologyProvider ontologyProvider, IStorage storage)
     {
         _ontologyProvider = ontologyProvider;
+        _storage = storage;
         
         // Configure model parameters
         var parameters = new ModelParams(ModelPath)
         {
             ContextSize = 4096,
-            GpuLayerCount = -1,
+            GpuLayerCount = -1
         };
 
-        NativeLogConfig.llama_log_set((d, msg) =>
-        {
-            Debug.WriteLine($"[{d}] - {msg.Trim()} ");
-        });
-        
+        NativeLogConfig.llama_log_set((d, msg) => { Debug.WriteLine($"[{d}] - {msg.Trim()} "); });
+
         Console.WriteLine("Loading model...");
         _model = LLamaWeights.LoadFromFile(parameters);
         _context = _model.CreateContext(parameters);
         var executor = new InteractiveExecutor(_context);
 
         // Build complete system prompt with ontology
-        var completeSystemPrompt = systemPrompt 
-            + "\n\n" + _ontologyProvider.GetOntologyPromptSection() 
-            + "\n\n" + _ontologyProvider.GetJsonSchemaExample();
-        
+        var completeSystemPrompt = systemPrompt
+                                   + "\n\n" + _ontologyProvider.GetOntologyPromptSection()
+                                   + "\n\n" + _ontologyProvider.GetJsonSchemaExample();
+
         // Start a fresh history with the role's System Prompt
         var history = new ChatHistory();
         history.AddMessage(AuthorRole.System, completeSystemPrompt);
@@ -55,79 +58,37 @@ internal class Agent : IAgent, IDisposable
     }
 
     public string Id { get; init; } = string.Empty;
-    
+
     public string Name { get; init; } = string.Empty;
 
     public async Task<IList<Claim>> ProcessAsync(IDocument document)
     {
         var respondJson = new AgentRespondJson();
-        
-        await foreach (var text in _chatSession.ChatAsync(new ChatHistory.Message(AuthorRole.User, document.Content), _interferenceParams))
+
+        await foreach (var text in _chatSession.ChatAsync(new ChatHistory.Message(AuthorRole.User, document.Content),
+                           _interferenceParams))
         {
             respondJson.AppendText(text);
         }
-        
+
         var jsonContent = respondJson.ExtractJson();
-        
+
         // Parse JSON response into Claims
         try
         {
-            var wrapper = System.Text.Json.JsonSerializer.Deserialize<ClaimsWrapper>(jsonContent);
-            
+            var wrapper = JsonSerializer.Deserialize<ClaimsWrapper>(jsonContent);
+
             if (wrapper?.Claims == null)
             {
-                Console.WriteLine($"Warning: No claims extracted from response");
+                Console.WriteLine("Warning: No claims extracted from response");
                 return new List<Claim>();
             }
-            
-            var claims = new List<Claim>();
-            
-            foreach (var claim in wrapper.Claims)
-            {
-                // Validate and resolve predicate
-                var predicate = _ontologyProvider.FindPredicate(claim.Predicate.Id);
-                if (predicate == null)
-                {
-                    Console.WriteLine($"Warning: Unknown predicate {claim.Predicate.Id}");
-                    continue;
-                }
-                
-                // Resolve entity types
-                var subjectType = claim.Subject.TypeId != null 
-                    ? _ontologyProvider.FindClass(claim.Subject.TypeId) 
-                    : null;
-                var objectType = claim.Object.TypeId != null 
-                    ? _ontologyProvider.FindClass(claim.Object.TypeId) 
-                    : null;
-                
-                var validatedClaim = new Claim
-                {
-                    Subject = new Entity
-                    {
-                        Id = claim.Subject.Id,
-                        Name = claim.Subject.Name,
-                        Description = claim.Subject.Description,
-                        Properties = claim.Subject.Properties,
-                        Type = subjectType
-                    },
-                    Predicate = predicate,
-                    Object = new Entity
-                    {
-                        Id = claim.Object.Id,
-                        Name = claim.Object.Name,
-                        Description = claim.Object.Description,
-                        Properties = claim.Object.Properties,
-                        Type = objectType
-                    },
-                    ReferenceDocument = document
-                };
-                
-                claims.Add(validatedClaim);
-            }
-            
+
+            var claims = GenerateClaims(document, wrapper);
+
             return claims;
         }
-        catch (System.Text.Json.JsonException ex)
+        catch (JsonException ex)
         {
             Console.WriteLine($"Error parsing LLM response as JSON: {ex.Message}");
             Console.WriteLine($"Response was: {jsonContent}");
@@ -141,9 +102,59 @@ internal class Agent : IAgent, IDisposable
         _model?.Dispose();
     }
 
+    private List<Claim> GenerateClaims(IDocument document, ClaimsWrapper wrapper)
+    {
+        var claims = new List<Claim>();
+
+        foreach (var claim in wrapper.Claims)
+        {
+            // Validate and resolve predicate
+            var predicate = _ontologyProvider.FindPredicate(claim.Predicate.Id);
+            if (predicate == null)
+            {
+                Console.WriteLine($"Warning: Unknown predicate {claim.Predicate.Id}");
+                continue;
+            }
+
+            // Resolve entity types
+            var subjectType = claim.Subject.TypeId != null
+                ? _ontologyProvider.FindClass(claim.Subject.TypeId)
+                : null;
+            var objectType = claim.Object.TypeId != null
+                ? _ontologyProvider.FindClass(claim.Object.TypeId)
+                : null;
+
+            var validatedClaim = new Claim
+            {
+                Subject = new Entity
+                {
+                    Id = claim.Subject.Id,
+                    Name = claim.Subject.Name,
+                    Description = claim.Subject.Description,
+                    Properties = claim.Subject.Properties,
+                    Type = subjectType
+                },
+                Predicate = predicate,
+                Object = new Entity
+                {
+                    Id = claim.Object.Id,
+                    Name = claim.Object.Name,
+                    Description = claim.Object.Description,
+                    Properties = claim.Object.Properties,
+                    Type = objectType
+                }
+            };
+
+            claims.Add(validatedClaim);
+            
+            _storage.StoreClaim(validatedClaim, document.Id);
+        }
+
+        return claims;
+    }
+
     private class ClaimsWrapper
     {
-        [System.Text.Json.Serialization.JsonPropertyName("claims")]
-        public List<Claim> Claims { get; set; } = new();
+        [JsonPropertyName("claims")] public List<Claim> Claims { get; set; } = new();
     }
 }

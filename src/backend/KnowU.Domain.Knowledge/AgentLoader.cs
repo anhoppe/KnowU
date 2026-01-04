@@ -1,4 +1,5 @@
 ﻿using KnowU.Domain.Knowledge.Contract;
+using KnowU.Domain.Storage.Contract;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -8,11 +9,13 @@ internal class AgentLoader
 {
     private readonly IAgentFactory _agentFactory;
     private readonly IOntologyProvider _ontologyProvider;
+    private readonly IStorage _storage;
 
-    public AgentLoader(string yamlFilePath, IAgentFactory agentFactory, IOntologyProvider ontologyProvider)
+    public AgentLoader(string yamlFilePath, IAgentFactory agentFactory, IOntologyProvider ontologyProvider, IStorage storage)
     {
         _agentFactory = agentFactory;
         _ontologyProvider = ontologyProvider;
+        _storage = storage;
 
         var deserializer = new DeserializerBuilder()
             .WithNamingConvention(UnderscoredNamingConvention.Instance)
@@ -24,7 +27,7 @@ internal class AgentLoader
 
         foreach (var persona in wrapper.Roles)
         {
-            Agents.Add(_agentFactory.CreateAgent(persona.SystemPrompt, persona.Id, persona.Name, _ontologyProvider));
+            Agents.Add(_agentFactory.CreateAgent(persona.SystemPrompt, persona.Id, persona.Name, _ontologyProvider, _storage));
         }
     }
 

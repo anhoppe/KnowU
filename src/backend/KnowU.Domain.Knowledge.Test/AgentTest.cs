@@ -1,4 +1,6 @@
+using KnowU.Domain.Knowledge.Contract;
 using KnowU.Domain.Storage.Contract;
+using Moq;
 using NUnit.Framework;
 
 namespace KnowU.Domain.Knowledge.Test;
@@ -13,6 +15,7 @@ public class AgentTest
     public void SetUp()
     {
         _ontologyProvider = new OntologyProvider(@"c:\repo\KnowU\data\onto.json");
+        var mockStorage = new Mock<IStorage>();
         
         // Load the technical_pm persona system prompt
         var systemPrompt = @"Role: You are a Senior Technical Project Manager (TPM).
@@ -23,11 +26,17 @@ Extraction_Rules:
   - Extract specific version numbers, library names, or infrastructure requirements.
   - List 'Decisions Made' versus 'Open Questions'.";
 
-        _sut = new Agent(systemPrompt, _ontologyProvider)
+        _sut = new Agent(systemPrompt, _ontologyProvider, mockStorage.Object)
         {
             Id = "technical_pm",
             Name = "Senior Technical Project Manager"
         };
+    }
+
+    [Test]
+    public async Task ProcessAsync_WhenClaimsAreGenerated_ThenClaimsAreStored()
+    {
+        throw new NotImplementedException("Implement when refactoring of Agent is done");
     }
 
     [Test, Category("System")]
@@ -58,7 +67,6 @@ Extraction_Rules:
             Assert.That(claim.Predicate.Id, Is.Not.Empty);
             Assert.That(claim.Object, Is.Not.Null);
             Assert.That(claim.Object.Id, Is.Not.Empty);
-            Assert.That(claim.ReferenceDocument, Is.EqualTo(document));
         }
 
         // Print extracted claims for verification
