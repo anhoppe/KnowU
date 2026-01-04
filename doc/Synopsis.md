@@ -26,7 +26,7 @@ This is a **concise, project-focused summary** of the most important subjects, e
 - `author`
 - `timestamp`
 - `text`
-- `context` (project, team, meeting, etc.)
+- `context` (project, team, meeting, etc.) – See [ContextHierarchy.md](ContextHierarchy.md) for detailed strategy
 
 **Key Property:** Never modified; all downstream knowledge must reference notes.
 
