@@ -1,60 +1,29 @@
-﻿using System.Diagnostics;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using KnowU.Domain.Knowledge.Contract;
 using KnowU.Domain.Storage.Contract;
-using LLama;
-using LLama.Common;
-using LLama.Native;
 
 namespace KnowU.Domain.Knowledge;
 
 internal class Agent : IAgent, IDisposable
 {
-    private const string ModelPath = @"c:\models\google_gemma-3-4b-it-Q6_K.gguf";
-
-    private readonly ChatSession _chatSession;
-    private readonly LLamaContext _context;
-
-    private readonly InferenceParams _interferenceParams = new()
-    {
-        AntiPrompts = ["<end_of_turn>"]
-    };
-
-    private readonly LLamaWeights _model;
+    private readonly IAiCore _aiCore;
     private readonly IOntologyProvider _ontologyProvider;
-    
     private readonly IStorage _storage;
 
-    public Agent(string systemPrompt, IOntologyProvider ontologyProvider, IStorage storage)
+    public Agent(string systemPrompt, IOntologyProvider ontologyProvider, IStorage storage, IAiCore aiCore)
     {
         _ontologyProvider = ontologyProvider;
         _storage = storage;
+        _aiCore = aiCore;
         
-        // Configure model parameters
-        var parameters = new ModelParams(ModelPath)
-        {
-            ContextSize = 4096,
-            GpuLayerCount = -1
-        };
-
-        NativeLogConfig.llama_log_set((d, msg) => { Debug.WriteLine($"[{d}] - {msg.Trim()} "); });
-
-        Console.WriteLine("Loading model...");
-        _model = LLamaWeights.LoadFromFile(parameters);
-        _context = _model.CreateContext(parameters);
-        var executor = new InteractiveExecutor(_context);
-
         // Build complete system prompt with ontology
         var completeSystemPrompt = systemPrompt
                                    + "\n\n" + _ontologyProvider.GetOntologyPromptSection()
                                    + "\n\n" + _ontologyProvider.GetJsonSchemaExample();
 
-        // Start a fresh history with the role's System Prompt
-        var history = new ChatHistory();
-        history.AddMessage(AuthorRole.System, completeSystemPrompt);
-
-        _chatSession = new ChatSession(executor, history);
+        // Initialize the AI core with the complete system prompt
+        _aiCore.Initialize(completeSystemPrompt);
     }
 
     public string Id { get; init; } = string.Empty;
@@ -63,14 +32,7 @@ internal class Agent : IAgent, IDisposable
 
     public async Task<IList<Claim>> ProcessAsync(IDocument document)
     {
-        var respondJson = new AgentRespondJson();
-
-        await foreach (var text in _chatSession.ChatAsync(new ChatHistory.Message(AuthorRole.User, document.Content),
-                           _interferenceParams))
-        {
-            respondJson.AppendText(text);
-        }
-
+        var respondJson = await _aiCore.ProcessAsync(document);
         var jsonContent = respondJson.ExtractJson();
 
         // Parse JSON response into Claims
@@ -98,8 +60,10 @@ internal class Agent : IAgent, IDisposable
 
     public void Dispose()
     {
-        _context?.Dispose();
-        _model?.Dispose();
+        if (_aiCore is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
     }
 
     private List<Claim> GenerateClaims(IDocument document, ClaimsWrapper wrapper)

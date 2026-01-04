@@ -8,84 +8,146 @@ namespace KnowU.Domain.Knowledge.Test;
 [TestFixture]
 public class AgentTest
 {
-    private Agent _sut = null!;
-    private OntologyProvider _ontologyProvider = null!;
+    private readonly Mock<IOntologyProvider> _mockOntologyProvider = new();
+    private readonly Mock<IStorage> _mockStorage = new();
+    private readonly Mock<IAiCore> _mockAiCore = new();
 
     [SetUp]
     public void SetUp()
     {
-        _ontologyProvider = new OntologyProvider(@"c:\repo\KnowU\data\onto.json");
-        var mockStorage = new Mock<IStorage>();
+        _mockOntologyProvider.Reset();
+        _mockStorage.Reset();
+        _mockAiCore.Reset();
         
-        // Load the technical_pm persona system prompt
-        var systemPrompt = @"Role: You are a Senior Technical Project Manager (TPM).
-Persona: You are an expert in Agile and SDLC. You understand the nuances of software engineering and dependencies.
-Objective: Extract technical requirements and engineering constraints.
-Extraction_Rules:
-  - Identify technical blockers or risks mentioned.
-  - Extract specific version numbers, library names, or infrastructure requirements.
-  - List 'Decisions Made' versus 'Open Questions'.";
+        // Setup default ontology provider behavior
+        _mockOntologyProvider.Setup(o => o.GetOntologyPromptSection())
+            .Returns("\nAvailable Entity Classes:\n- SoftwareModule\n\nAvailable Predicates:\n- dependsOn");
+        _mockOntologyProvider.Setup(o => o.GetJsonSchemaExample())
+            .Returns("JSON Schema Example");
+        _mockOntologyProvider.Setup(o => o.FindPredicate("http://example.org/predicate/dependsOn"))
+            .Returns(new PredicateProperty { Id = "http://example.org/predicate/dependsOn", Label = "dependsOn" });
+        _mockOntologyProvider.Setup(o => o.FindClass("http://example.org/class/SoftwareModule"))
+            .Returns(new EntityClass { Id = "http://example.org/class/SoftwareModule", Label = "SoftwareModule" });
+    }
 
-        _sut = new Agent(systemPrompt, _ontologyProvider, mockStorage.Object)
+    [Test]
+    public void Constructor_WhenCalled_ThenInitializesAiCoreWithCompleteSystemPrompt()
+    {
+        // Arrange
+        var systemPrompt = "Custom system prompt";
+
+        // Act
+        _ = new Agent(systemPrompt, _mockOntologyProvider.Object, _mockStorage.Object, _mockAiCore.Object)
         {
-            Id = "technical_pm",
-            Name = "Senior Technical Project Manager"
+            Id = "test-agent",
+            Name = "Test Agent"
         };
+
+        // Assert
+        _mockAiCore.Verify(a => a.Initialize(It.Is<string>(prompt =>
+                prompt.Contains(systemPrompt) &&
+                prompt.Contains("Available Entity Classes:") &&
+                prompt.Contains("Available Predicates:"))),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task ProcessAsync_WhenAiCoreFindsClaims_ThenClaimObjectsCorrectlyGenerated()
+    {
+        // Arrange
+        var mockDocument = new Mock<IDocument>();
+        mockDocument.Setup(d => d.Id).Returns("test-doc-123");
+        mockDocument.Setup(d => d.Content).Returns("Test content");
+        var testDocument = mockDocument.Object;
+
+        // Create a valid JSON response with correct ontology IDs
+        var respondJson = new AgentRespondJson();
+        respondJson.AppendText(@"{
+            ""claims"": [
+                {
+                    ""subject"": {
+                        ""id"": ""module1"",
+                        ""name"": ""Authentication Module"",
+                        ""description"": ""Handles user authentication"",
+                        ""typeId"": ""http://example.org/class/SoftwareModule""
+                    },
+                    ""predicate"": {
+                        ""id"": ""http://example.org/predicate/dependsOn""
+                    },
+                    ""object"": {
+                        ""id"": ""module2"",
+                        ""name"": ""Database Module"",
+                        ""description"": ""Provides data access"",
+                        ""typeId"": ""http://example.org/class/SoftwareModule""
+                    }
+                }
+            ]
+        }");
+
+        _mockAiCore.Setup(a => a.ProcessAsync(It.IsAny<IDocument>()))
+            .ReturnsAsync(respondJson);
+
+        var systemPrompt = "Extract claims from documents";
+        var sut = new Agent(systemPrompt, _mockOntologyProvider.Object, _mockStorage.Object, _mockAiCore.Object)
+        {
+            Id = "test-agent",
+            Name = "Test Agent"
+        };
+
+        // Act
+        var claims = await sut.ProcessAsync(testDocument);
+
+        // Assert
+        Assert.That(claims.Count, Is.EqualTo(1));
+        Assert.That(claims[0].Subject.Name, Is.EqualTo("Authentication Module"));
+        Assert.That(claims[0].Object.Name, Is.EqualTo("Database Module"));
+        Assert.That(claims[0].Predicate.Id, Is.EqualTo("http://example.org/predicate/dependsOn"));
     }
 
     [Test]
     public async Task ProcessAsync_WhenClaimsAreGenerated_ThenClaimsAreStored()
     {
-        throw new NotImplementedException("Implement when refactoring of Agent is done");
-    }
-
-    [Test, Category("System")]
-    [Explicit("This is a system test that requires LLM model to be available")]
-    public async Task ProcessAsync_WhenGivenSampleNote_ThenExtractsClaims()
-    {
         // Arrange
-        var noteContent = File.ReadAllText("Assets/SampleNote.txt");
-        var document = new TestDocument
+        var mockDocument = new Mock<IDocument>();
+        mockDocument.Setup(d => d.Id).Returns("test-doc-123");
+        mockDocument.Setup(d => d.Content).Returns("Test content");
+        var testDocument = mockDocument.Object;
+
+        var respondJson = new AgentRespondJson();
+        respondJson.AppendText(@"{
+            ""claims"": [
+                {
+                    ""subject"": {
+                        ""id"": ""module1"",
+                        ""name"": ""Authentication Module"",
+                        ""typeId"": ""http://example.org/class/SoftwareModule""
+                    },
+                    ""predicate"": {
+                        ""id"": ""http://example.org/predicate/dependsOn""
+                    },
+                    ""object"": {
+                        ""id"": ""module2"",
+                        ""name"": ""Database Module"",
+                        ""typeId"": ""http://example.org/class/SoftwareModule""
+                    }
+                }
+            ]
+        }");
+
+        _mockAiCore.Setup(a => a.ProcessAsync(It.IsAny<IDocument>()))
+            .ReturnsAsync(respondJson);
+
+        var systemPrompt = "Extract claims from documents";
+        var sut = new Agent(systemPrompt, _mockOntologyProvider.Object, _mockStorage.Object, _mockAiCore.Object)
         {
-            Content = noteContent,
-            Id = "sample_note_1"
+            Id = "test-agent",
+            Name = "Test Agent"
         };
 
         // Act
-        var claims = await _sut.ProcessAsync(document);
+        await sut.ProcessAsync(testDocument);
 
         // Assert
-        Assert.That(claims, Is.Not.Null);
-        Assert.That(claims.Count, Is.GreaterThan(0), "Expected at least one claim to be extracted");
-        
-        // Verify claims have proper structure
-        foreach (var claim in claims)
-        {
-            Assert.That(claim.Subject, Is.Not.Null);
-            Assert.That(claim.Subject.Id, Is.Not.Empty);
-            Assert.That(claim.Predicate, Is.Not.Null);
-            Assert.That(claim.Predicate.Id, Is.Not.Empty);
-            Assert.That(claim.Object, Is.Not.Null);
-            Assert.That(claim.Object.Id, Is.Not.Empty);
-        }
-
-        // Print extracted claims for verification
-        Console.WriteLine($"Extracted {claims.Count} claims:");
-        foreach (var claim in claims)
-        {
-            Console.WriteLine($"  {claim.Subject.Id} --[{claim.Predicate.Label}]--> {claim.Object.Id}");
-        }
-    }
-
-    [TearDown]
-    public void TearDown()
-    {
-        _sut = null!;
-    }
-
-    private class TestDocument : IDocument
-    {
-        public string Id { get; init; } = string.Empty;
-        public string Content { get; init; } = string.Empty;
+        _mockStorage.Verify(s => s.StoreClaim(It.IsAny<Claim>(), testDocument.Id), Times.Once);
     }
 }

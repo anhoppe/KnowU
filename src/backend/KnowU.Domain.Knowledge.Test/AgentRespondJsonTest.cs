@@ -14,18 +14,21 @@ public class AgentRespondJsonTest
     }
 
     [Test]
-    public void ExtractJson_WhenPlainJson_ThenReturnsJson()
+    public void ExtractJson_WhenExplanationBeforeFence_ThenReturnsJson()
     {
         // Arrange
         _agentRespondJson.AppendText("""
-            {
-              "claims": [
-                {
-                  "subject": { "id": "1" }
-                }
-              ]
-            }
-            """);
+                                     How to ensure the DTS data is persisted
+                                     ```json
+                                     {
+                                       "claims": [
+                                         {
+                                           "subject": { "id": "1" }
+                                         }
+                                       ]
+                                     }
+                                     ```
+                                     """);
 
         // Act
         var result = _agentRespondJson.ExtractJson();
@@ -33,6 +36,7 @@ public class AgentRespondJsonTest
         // Assert
         Assert.That(result, Does.Contain("\"claims\""));
         Assert.That(result, Does.Not.Contain("```"));
+        Assert.That(result, Does.Not.Contain("How to ensure"));
     }
 
     [Test]
@@ -40,16 +44,16 @@ public class AgentRespondJsonTest
     {
         // Arrange
         _agentRespondJson.AppendText("""
-            ```json
-            {
-              "claims": [
-                {
-                  "subject": { "id": "1" }
-                }
-              ]
-            }
-            ```
-            """);
+                                     ```json
+                                     {
+                                       "claims": [
+                                         {
+                                           "subject": { "id": "1" }
+                                         }
+                                       ]
+                                     }
+                                     ```
+                                     """);
 
         // Act
         var result = _agentRespondJson.ExtractJson();
@@ -64,16 +68,16 @@ public class AgentRespondJsonTest
     {
         // Arrange
         _agentRespondJson.AppendText("""
-            ```
-            {
-              "claims": [
-                {
-                  "subject": { "id": "1" }
-                }
-              ]
-            }
-            ```
-            """);
+                                     ```
+                                     {
+                                       "claims": [
+                                         {
+                                           "subject": { "id": "1" }
+                                         }
+                                       ]
+                                     }
+                                     ```
+                                     """);
 
         // Act
         var result = _agentRespondJson.ExtractJson();
@@ -84,21 +88,18 @@ public class AgentRespondJsonTest
     }
 
     [Test]
-    public void ExtractJson_WhenExplanationBeforeFence_ThenReturnsJson()
+    public void ExtractJson_WhenPlainJson_ThenReturnsJson()
     {
         // Arrange
         _agentRespondJson.AppendText("""
-            How to ensure the DTS data is persisted
-            ```json
-            {
-              "claims": [
-                {
-                  "subject": { "id": "1" }
-                }
-              ]
-            }
-            ```
-            """);
+                                     {
+                                       "claims": [
+                                         {
+                                           "subject": { "id": "1" }
+                                         }
+                                       ]
+                                     }
+                                     """);
 
         // Act
         var result = _agentRespondJson.ExtractJson();
@@ -106,7 +107,6 @@ public class AgentRespondJsonTest
         // Assert
         Assert.That(result, Does.Contain("\"claims\""));
         Assert.That(result, Does.Not.Contain("```"));
-        Assert.That(result, Does.Not.Contain("How to ensure"));
     }
 
     [Test]
@@ -114,16 +114,16 @@ public class AgentRespondJsonTest
     {
         // Arrange
         _agentRespondJson.AppendText("""
-            
-            
-            ```json
-            {
-              "claims": []
-            }
-            ```
-            
-            
-            """);
+
+
+                                     ```json
+                                     {
+                                       "claims": []
+                                     }
+                                     ```
+
+
+                                     """);
 
         // Act
         var result = _agentRespondJson.ExtractJson();

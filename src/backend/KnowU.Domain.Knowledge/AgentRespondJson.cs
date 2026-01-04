@@ -1,45 +1,49 @@
+using System.Text;
+
 namespace KnowU.Domain.Knowledge;
 
+/// <summary>
+/// Encapsulates the JSON response from an AI agent
+/// </summary>
 internal class AgentRespondJson
 {
-    private readonly System.Text.StringBuilder _responseBuilder = new();
+    private readonly StringBuilder _stringBuilder = new();
 
+    /// <summary>
+    /// Appends text to the response buffer
+    /// </summary>
+    /// <param name="text">Text chunk to append</param>
     public void AppendText(string text)
     {
-        _responseBuilder.Append(text);
+        _stringBuilder.Append(text);
     }
 
+    /// <summary>
+    /// Extracts clean JSON from the response, removing markdown fences and preamble
+    /// </summary>
+    /// <returns>Clean JSON string</returns>
     public string ExtractJson()
     {
-        var llmResponse = _responseBuilder.ToString();
-        
-        // Strip markdown code fences if present (LLMs sometimes add them despite instructions)
-        // Also remove any text that appears before the opening fence
-        var jsonContent = llmResponse.Trim();
-        
-        // Find the opening fence (could be ```json or just ```)
-        var startFenceIndex = jsonContent.IndexOf("```json", StringComparison.OrdinalIgnoreCase);
-        if (startFenceIndex >= 0)
+        var fullText = _stringBuilder.ToString();
+
+        // Find opening fence
+        var openFenceIndex = fullText.IndexOf("```json", StringComparison.Ordinal);
+        if (openFenceIndex == -1)
         {
-            // Remove everything before and including ```json
-            jsonContent = jsonContent.Substring(startFenceIndex + 7);
+            openFenceIndex = fullText.IndexOf("```", StringComparison.Ordinal);
         }
-        else
+
+        // Find closing fence
+        var closeFenceIndex = fullText.LastIndexOf("```", StringComparison.Ordinal);
+
+        if (openFenceIndex >= 0 && closeFenceIndex > openFenceIndex)
         {
-            startFenceIndex = jsonContent.IndexOf("```", StringComparison.OrdinalIgnoreCase);
-            if (startFenceIndex >= 0)
-            {
-                // Remove everything before and including ```
-                jsonContent = jsonContent.Substring(startFenceIndex + 3);
-            }
+            // Extract content between fences
+            var startIndex = fullText.IndexOf('\n', openFenceIndex) + 1;
+            return fullText.Substring(startIndex, closeFenceIndex - startIndex).Trim();
         }
-        
-        // Remove trailing fence if present
-        if (jsonContent.EndsWith("```"))
-        {
-            jsonContent = jsonContent.Substring(0, jsonContent.Length - 3);
-        }
-        
-        return jsonContent.Trim();
+
+        // No fences found, return the full text
+        return fullText.Trim();
     }
 }

@@ -16,8 +16,8 @@ public class AgentLoaderTest
         var mockFactory = new Mock<IAgentFactory>();
         mockFactory.Setup(f =>
                 f.CreateAgent(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                    It.IsAny<IOntologyProvider>(), It.IsAny<IStorage>()))
-            .Returns((string systemPrompt, string id, string name, IOntologyProvider ontologyProvider, IStorage storage) =>
+                    It.IsAny<IOntologyProvider>(), It.IsAny<IStorage>(), It.IsAny<IAiCore>()))
+            .Returns((string systemPrompt, string id, string name, IOntologyProvider ontologyProvider, IStorage storage, IAiCore aiCore) =>
             {
                 var mockAgent = new Mock<IAgent>();
                 mockAgent.SetupGet(a => a.Id).Returns(id);

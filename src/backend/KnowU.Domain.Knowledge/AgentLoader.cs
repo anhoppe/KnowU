@@ -27,7 +27,8 @@ internal class AgentLoader
 
         foreach (var persona in wrapper.Roles)
         {
-            Agents.Add(_agentFactory.CreateAgent(persona.SystemPrompt, persona.Id, persona.Name, _ontologyProvider, _storage));
+            var aiCore = new AiCore();
+            Agents.Add(_agentFactory.CreateAgent(persona.SystemPrompt, persona.Id, persona.Name, _ontologyProvider, _storage, aiCore));
         }
     }
 
